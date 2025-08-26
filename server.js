@@ -20,12 +20,12 @@ app.use("/uploads", express.static("uploads"));
 // app.use("/api/match", matchRoutes);
 // app.use("/api/questionnaire", questionnaireRoutes);
 
-mongoose.connect(`${db}/lostandfound`, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => app.listen(5000, () => console.log("🚀 Server running on port 5000")))
     .catch((err) => console.log(err));
 console.log(db)
 
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Example app listening on port http://localhost/${port}`)
 })
