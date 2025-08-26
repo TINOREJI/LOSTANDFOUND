@@ -54,7 +54,7 @@ const questionnaires = [
 
 const seedDatabase = async () => {
   try {
-    console.log("🔍 Connecting to:", db);
+    // console.log("🔍 Connecting to:", db);
     await mongoose.connect(db);  // ✅ Clean connection
 
     // Optional: Clear old data
