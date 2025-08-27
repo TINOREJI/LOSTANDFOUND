@@ -21,30 +21,17 @@ app.get('/',(req,res)=>{
   res.send("hello world")
 })
 
-<<<<<<< HEAD
+
 app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
 
-mongoose.connect(db)
-  .then(() => app.listen(port, () => 
-    console.log(`Server running on http://localhost:5000`)))
-  .catch((err) => console.log(err));
-=======
 app.use("/api/v1/item", itemRoutes);
 app.use("/api/v1/match", matchRoutes);
 app.use("/api/v1/questionnaire", questionnaireRoutes);
 
 
->>>>>>> db28076 (update code)
-// console.log(db)
 
-
-app.listen(port, () => {
-<<<<<<< HEAD
-  console.log(`Example app listening on http://localhost:${port}`);
-});
-=======
-  console.log(`Example app listening on port http://localhost:${port}`)
+app.listen(port,()=>{
+  console.log(`Example app listening on port: http://localhost:${port}`);
 })
->>>>>>> db28076 (update code)
