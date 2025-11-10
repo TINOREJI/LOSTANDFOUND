@@ -1,0 +1,66 @@
+# ================================
+# General
+# ================================
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ================================
+# Node.js backend
+# ================================
+backend/node_modules/
+backend/dist/
+backend/build/
+backend/.env
+backend/.env.local
+
+# Optional if using TypeScript in backend
+backend/*.tsbuildinfo
+
+# ================================
+# React frontend
+# ================================
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# Optional if using React testing
+frontend/coverage/
+
+# ================================
+# Other common items
+# ================================
+# Local database / cache files
+*.sqlite
+*.db
+*.cache
+
+# Dependency directories (just in case)
+node_modules/
+
+# Temp files
+tmp/
+temp/
