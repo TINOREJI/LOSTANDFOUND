@@ -1,8 +1,8 @@
 // src/services/api.js
 import axios from "axios";
 
-// Base URL — change to your backend
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8800/api/v1";
+// Base URL — set in .env or fallback
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -12,7 +12,7 @@ const api = axios.create({
   },
 });
 
-// Response interceptor
+// Response interceptor: return only data, clean errors
 api.interceptors.response.use(
   (res) => res.data,
   (error) => {
@@ -26,53 +26,71 @@ api.interceptors.response.use(
 );
 
 /* ========================================
-   1. QUESTIONNAIRE API
+   1. CATEGORIES
    ======================================== */
-export const getQuestionnaire = async (category) => {
-  if (!category) throw new Error("Category is required");
-  return await api.get(`/questionnaire/${category}`);
+export const getCategories = async () => {
+  return await api.get("/category");
 };
 
 /* ========================================
-   2. SEARCH / MATCH API
+   2. QUESTIONNAIRE BY CATEGORY ID
    ======================================== */
-export const searchLostItems = async ({ category, answers, page = 1, limit = 10 }) => {
-  if (!category || !answers) throw new Error("Category and answers required");
-  return await api.post("/match/lost", {
-    category,
-    claimantAnswers: answers,
-    page,
-    limit,
-  });
+export const getQuestionnaire = async (categoryId) => {
+  if (!categoryId) throw new Error("Category ID is required");
+  return await api.get(`/questionnaire/${categoryId}`);
 };
 
 /* ========================================
-   3. SUBMIT FOUND ITEM
+   3. SUBMIT FOUND ITEM (with photo)
    ======================================== */
 export const submitFoundItem = async (formData) => {
-  // formData should be FormData object (includes image)
+  if (!(formData instanceof FormData)) {
+    throw new Error("submitFoundItem expects a FormData object");
+  }
   return await api.post("/item/found", formData, {
     headers: { "Content-Type": "multipart/form-data" },
+    timeout: 30000, // Allow large image
   });
 };
 
 /* ========================================
-   4. GET ITEM BY ID (for results)
+   4. MATCH LOST ITEM (search + similarity score)
+   ======================================== */
+export const matchLostItem = async ({ categoryId, claimantAnswers }) => {
+  if (!categoryId || !claimantAnswers) {
+    throw new Error("categoryId and claimantAnswers are required");
+  }
+  return await api.post("/item/match/lost", {
+    categoryId,
+    claimantAnswers,
+  });
+};
+
+/* ========================================
+   5. GET ALL FOUND ITEMS (optional: for admin)
+   ======================================== */
+export const getAllFoundItems = async () => {
+  return await api.get("/item");
+};
+
+/* ========================================
+   6. GET ITEM BY ID (for details page)
    ======================================== */
 export const getItemById = async (id) => {
-  if (!id) throw new Error("Item ID required");
+  if (!id) throw new Error("Item ID is required");
   return await api.get(`/item/${id}`);
 };
 
 /* ========================================
-   5. CLAIM ITEM (optional)
+   7. CLAIM ITEM (future)
    ======================================== */
 export const claimItem = async (itemId, claimantData) => {
+  if (!itemId || !claimantData) throw new Error("itemId and claimantData required");
   return await api.post(`/item/${itemId}/claim`, claimantData);
 };
 
 /* ========================================
-   6. AUTH (Login / Register) — optional
+   8. AUTH (optional)
    ======================================== */
 export const loginUser = async (credentials) => {
   return await api.post("/auth/login", credentials);
@@ -83,20 +101,28 @@ export const registerUser = async (userData) => {
 };
 
 /* ========================================
-   7. UPLOAD IMAGE (direct to Cloudinary if needed)
+   9. CLOUDINARY IMAGE UPLOAD (optional fallback)
    ======================================== */
-export const uploadImage = async (file) => {
+export const uploadToCloudinary = async (file) => {
+  const preset = import.meta.env.VITE_CLOUDINARY_PRESET;
+  const cloud = import.meta.env.VITE_CLOUDINARY_CLOUD;
+
+  if (!preset || !cloud) {
+    throw new Error("Cloudinary config missing in .env");
+  }
+
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET);
+  formData.append("upload_preset", preset);
 
   const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${cloud}/image/upload`,
     {
       method: "POST",
       body: formData,
     }
   );
+
   const data = await res.json();
   if (!res.ok) throw new Error(data.error?.message || "Upload failed");
   return data.secure_url;

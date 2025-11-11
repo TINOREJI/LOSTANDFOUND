@@ -1,9 +1,12 @@
 // src/components/forms/DynamicForm.jsx
 import { useState, useEffect } from "react";
 import { FiArrowRight, FiChevronDown } from "react-icons/fi";
-import { getQuestionnaire, searchLostItems } from "../../services/api";
+import { getQuestionnaire, matchLostItem } from "../../services/api";
+import { useNavigate } from "react-router-dom"; // ← ADD THIS
 
-export default function DynamicForm({ category, onSubmit, onBack }) {
+export default function DynamicForm({ categoryId, categoryName, onBack }) {
+  const navigate = useNavigate(); // ← ADD THIS
+
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
@@ -13,45 +16,55 @@ export default function DynamicForm({ category, onSubmit, onBack }) {
   // Fetch questions
   useEffect(() => {
     const fetchQuestions = async () => {
+      if (!categoryId) return;
+
       setLoading(true);
       setError("");
       try {
-        const res = await getQuestionnaire(category);
-        setQuestions(res.questions || []);
+        const res = await getQuestionnaire(categoryId);
+        setQuestions(res.data.questions || []);
       } catch (err) {
-        setError("Failed to load questions.");
+        setError("Failed to load questions. Please try again.");
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (category) fetchQuestions();
-  }, [category]);
+    fetchQuestions();
+  }, [categoryId]);
 
-  // Re-evaluate completion
+  // Check form completion
   useEffect(() => {
-    const allRequiredFilled = questions
-      .filter(q => !q.dependsOn) // Only top-level
-      .every(q => answers[q.id]?.trim());
-
-    setIsComplete(allRequiredFilled);
+    const topLevel = questions.filter(q => !q.dependsOn);
+    const allFilled = topLevel.every(q => answers[q.id]?.trim());
+    setIsComplete(allFilled);
   }, [answers, questions]);
 
   const handleChange = (id, value) => {
     setAnswers(prev => ({ ...prev, [id]: value }));
   };
 
+  // Submit → Navigate to Results
   const handleSubmit = async () => {
-    if (!isComplete) return;
+    if (!isComplete || !categoryId) return;
 
     try {
-      const results = await searchLostItems({
-        category,
-        answers,
+      const results = await matchLostItem({
+        categoryId,
+        claimantAnswers: answers,
       });
-      onSubmit(results);
+
+      navigate("/results", {
+        state: {
+          category: categoryName,
+          totalMatches: results.data.totalMatches,
+          details: results.data.details,
+        },
+      });
     } catch (err) {
-      setError("Search failed.");
+      setError("No matches found or search failed.");
+      console.error(err);
     }
   };
 
@@ -60,17 +73,21 @@ export default function DynamicForm({ category, onSubmit, onBack }) {
     const showSub = q.dependsOn && answers[q.dependsOn.id] === q.dependsOn.value;
 
     return (
-      <div key={q.id} className={`space-y-2 ${q.dependsOn ? "ml-6 mt-4 border-l-2 border-orange-500/30 pl-4" : ""}`}>
+      <div
+        key={q.id}
+        className={`space-y-2 ${q.dependsOn ? "ml-6 mt-4 border-l-2 border-orange-500/30 pl-4" : ""}`}
+      >
         <label className="block text-white font-medium text-lg">{q.label}</label>
+
         {q.type === "select" ? (
           <div className="relative">
             <select
               value={value}
-              onChange={e => handleChange(q.id, e.target.value)}
+              onChange={(e) => handleChange(q.id, e.target.value)}
               className="w-full appearance-none bg-white/10 border border-white/20 text-white rounded-xl px-5 py-4 pr-12 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
             >
               <option value="">Select...</option>
-              {q.options.map(opt => (
+              {q.options?.map((opt) => (
                 <option key={opt} value={opt} style={{ background: "#111", color: "white" }}>
                   {opt}
                 </option>
@@ -81,43 +98,75 @@ export default function DynamicForm({ category, onSubmit, onBack }) {
         ) : (
           <input
             type={q.type || "text"}
-            placeholder={q.placeholder}
+            placeholder={q.placeholder || `Enter ${q.label.toLowerCase()}`}
             value={value}
-            onChange={e => handleChange(q.id, e.target.value)}
+            onChange={(e) => handleChange(q.id, e.target.value)}
             className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-500 rounded-xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
           />
         )}
 
-        {/* Render sub-questions */}
-        {showSub && questions
-          .filter(sub => sub.dependsOn?.id === q.id)
-          .map(renderQuestion)}
+        {showSub &&
+          questions
+            .filter((sub) => sub.dependsOn?.id === q.id)
+            .map(renderQuestion)}
       </div>
     );
   };
 
-  if (loading) return <p className="text-center text-white animate-pulse">Loading questions...</p>;
-  if (error) return <p className="text-center text-red-400">{error}</p>;
+  // Loading
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-white animate-pulse">Loading questions...</p>
+      </div>
+    );
+  }
+
+  // Error
+  if (error && questions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-400 mb-4">{error}</p>
+        <button onClick={onBack} className="text-orange-400 underline">
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  // No questions
   if (questions.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-400">No questions available.</p>
-        <button onClick={onBack} className="mt-4 text-orange-400 underline">Back</button>
+        <p className="text-gray-400">No questions available for this category.</p>
+        <button onClick={onBack} className="mt-4 text-orange-400 underline">
+          Change Category
+        </button>
       </div>
     );
   }
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-orange-400 capitalize">{category}</h2>
-        <button onClick={onBack} className="text-sm text-gray-400 underline">Change</button>
+        <h2 className="text-xl font-bold text-orange-400 capitalize">
+          {categoryName || "Item"}
+        </h2>
+        <button onClick={onBack} className="text-sm text-gray-400 underline hover:text-white">
+          Change
+        </button>
       </div>
 
-      {questions
-        .filter(q => !q.dependsOn)
-        .map(renderQuestion)}
+      {/* Questions */}
+      <div className="space-y-6">
+        {questions.filter((q) => !q.dependsOn).map(renderQuestion)}
+      </div>
 
+      {/* Error */}
+      {error && <p className="text-red-400 text-center">{error}</p>}
+
+      {/* Submit */}
       <button
         onClick={handleSubmit}
         disabled={!isComplete}
@@ -127,7 +176,7 @@ export default function DynamicForm({ category, onSubmit, onBack }) {
             : "bg-gray-700 text-gray-400 cursor-not-allowed"
         }`}
       >
-        Search Now
+        Search for My Item
         <FiArrowRight />
       </button>
     </div>

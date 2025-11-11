@@ -1,56 +1,112 @@
 // src/pages/Lost.jsx
-import { useState } from "react";
-import { FiChevronDown } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiSearch, FiArrowRight } from "react-icons/fi";
+import {
+  Smartphone,
+  Wallet,
+  Key,
+  Laptop,
+  Package,
+  HelpCircle,
+} from "lucide-react"; // ← Correct names
+
+import { getCategories } from "../services/api";
 import DynamicForm from "../components/forms/DynamicForm";
-import { useNavigate } from "react-router-dom";
+
+// Map DB icon string → actual component
+const iconMap = {
+  FiSmartphone: Smartphone,
+  FiWallet: Wallet,
+  FiKey: Key,
+  FiLaptop: Laptop,
+  FiPackage: Package,
+  FiHelpCircle: HelpCircle,
+};
 
 export default function Lost() {
-  const [category, setCategory] = useState("");
-  const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const categories = [
-    { value: "phone", label: "Phone" },
-    { value: "wallet", label: "Wallet" },
-    { value: "keys", label: "Keys" },
-    { value: "laptop", label: "Laptop" },
-    { value: "bag", label: "Bag / Backpack" },
-    { value: "other", label: "Other" },
-  ];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await getCategories();
+        setCategories(res.data.categories || []);
+      } catch (err) {
+        setError("Failed to load categories.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleSelectCategory = (cat) => {
+    setSelectedCategory(cat);
+  };
+
+  const handleBack = () => {
+    setSelectedCategory(null);
+  };
 
   const handleResults = (results) => {
-    navigate("/results", { state: { results: results.matches, category } });
+    console.log("Match Results:", results);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black/95 flex items-center justify-center">
+        <p className="text-white animate-pulse">Loading categories...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black/95 flex items-center justify-center">
+        <p className="text-red-400">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <section className="min-h-screen bg-black/95 flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-2xl">
-        <div className="bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+      <div className="w-full max-w-3xl">
+        <div className="bg-black/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 lg:p-12 shadow-2xl">
           <div className="text-center mb-10">
-            <h1 className="text-4xl font-black text-white">Search Lost Item</h1>
-            <p className="text-gray-400">Select category to begin</p>
+            <h1 className="text-4xl font-black text-white mb-2">Find My Lost Item</h1>
+            <p className="text-gray-400">Answer a few questions to search</p>
           </div>
 
-          {!category ? (
-            <div className="relative">
-              <select
-                value={category}
-                onChange={e => setCategory(e.target.value)}
-                className="w-full appearance-none bg-white/10 border border-white/20 text-white rounded-2xl px-6 py-5 pr-12 text-lg font-medium focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="">Choose Category</option>
-                {categories.map(c => (
-                  <option key={c.value} value={c.value} className="bg-gray-900">
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-              <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-xl pointer-events-none" />
-            </div>
+          {!selectedCategory ? (
+            <>
+              <label className="block text-white font-medium mb-4 text-lg">Select Item Category</label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {categories.map((cat) => {
+                  const IconComponent = iconMap[cat.icon] || HelpCircle; // ← Fallback
+                  return (
+                    <button
+                      key={cat._id}
+                      onClick={() => handleSelectCategory(cat)}
+                      className="p-6 bg-white/10 border border-white/20 rounded-2xl hover:bg-white/20 hover:border-orange-500/50 transition-all group"
+                    >
+                      <div className="text-3xl mb-3 flex justify-center">
+                        <IconComponent className="w-8 h-8 text-orange-400" />
+                      </div>
+                      <p className="text-white font-medium">{cat.name}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
           ) : (
             <DynamicForm
-              category={category}
+              categoryId={selectedCategory._id}
+              categoryName={selectedCategory.name}
               onSubmit={handleResults}
-              onBack={() => setCategory("")}
+              onBack={handleBack}
             />
           )}
         </div>

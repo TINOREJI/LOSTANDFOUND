@@ -1,38 +1,53 @@
 // src/pages/Found.jsx
 import { useState, useEffect } from "react";
 import { FiUpload, FiX, FiChevronDown, FiArrowRight, FiCheckCircle } from "react-icons/fi";
-import { getQuestionnaire, submitFoundItem } from "../services/api";
+import { getCategories, getQuestionnaire, submitFoundItem } from "../services/api";
+import {
+  Smartphone,
+  Wallet,
+  Key,
+  Laptop,
+  Package,
+  HelpCircle,
+} from "lucide-react";
 
 export default function Found() {
-  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const categories = [
-    { value: "phone", label: "Phone" },
-    { value: "wallet", label: "Wallet" },
-    { value: "keys", label: "Keys" },
-    { value: "laptop", label: "Laptop" },
-    { value: "bag", label: "Bag / Backpack" },
-    { value: "other", label: "Other" },
-  ];
+  // Fetch categories from DB
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await getCategories();
+        setCategories(res.data.categories || []);
+      } catch (err) {
+        setError("Failed to load categories.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Fetch questions when category changes
   useEffect(() => {
-    if (category) {
+    if (selectedCategory) {
       const fetchQuestions = async () => {
         setLoading(true);
         try {
-          const res = await getQuestionnaire(category);
-          setQuestions(res.questions || []);
+          const res = await getQuestionnaire(selectedCategory._id);
+          setQuestions(res.data.questions || []);
         } catch (err) {
           setError("Failed to load questions.");
         } finally {
@@ -41,7 +56,7 @@ export default function Found() {
       };
       fetchQuestions();
     }
-  }, [category]);
+  }, [selectedCategory]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -61,7 +76,7 @@ export default function Found() {
   };
 
   const isFormValid =
-    category &&
+    selectedCategory &&
     description.trim() &&
     location.trim() &&
     image &&
@@ -75,11 +90,17 @@ export default function Found() {
     setSuccess(false);
 
     const formData = new FormData();
-    formData.append("category", category);
+    formData.append("category", selectedCategory._id); // ← Real _id
     formData.append("description", description);
     formData.append("location", location);
-    formData.append("finderAnswers", JSON.stringify(answers));
     formData.append("photo", image);
+
+    // Append each answer as separate field
+    Object.entries(answers).forEach(([key, value]) => {
+      if (value?.trim()) {
+        formData.append(`finderAnswers[${key}]`, value);
+      }
+    });
 
     try {
       await submitFoundItem(formData);
@@ -93,13 +114,21 @@ export default function Found() {
   };
 
   const resetForm = () => {
-    setCategory("");
+    setSelectedCategory(null);
     setDescription("");
     setLocation("");
     setAnswers({});
     setImage(null);
     setPreview("");
   };
+  const iconMap = {
+  Smartphone,
+  Wallet,
+  Key,
+  Laptop,
+  Package,
+  HelpCircle,
+};
 
   const renderQuestion = (q) => {
     const value = answers[q.id] || "";
@@ -128,7 +157,7 @@ export default function Found() {
         ) : (
           <input
             type="text"
-            placeholder={q.placeholder}
+            placeholder={q.placeholder || `Enter ${q.label.toLowerCase()}`}
             value={value}
             onChange={e => handleAnswer(q.id, e.target.value)}
             className="w-full bg-white/10 border border-white/20 text-white placeholder-gray-500 rounded-xl px-5 py-4 focus:ring-2 focus:ring-orange-500"
@@ -168,24 +197,45 @@ export default function Found() {
           ) : (
             <>
               {/* Category */}
-              <div className="mb-8">
-                <label className="block text-white font-medium mb-3">Item Category</label>
-                <div className="relative">
-                  <select
-                    value={category}
-                    onChange={e => setCategory(e.target.value)}
-                    className="w-full appearance-none bg-white/10 border border-white/20 text-white rounded-2xl px-6 py-5 pr-12 text-lg font-medium focus:ring-2 focus:ring-orange-500"
-                  >
-                    <option value="">Choose Category</option>
-                    {categories.map(c => (
-                      <option key={c.value} value={c.value} style={{ background: "#111", color: "white" }}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                  <FiChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-white text-xl" />
-                </div>
-              </div>
+          <div className="mb-8">
+            <label className="block text-white font-medium mb-3">Item Category *</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {loading ? (
+                <p className="text-center text-white col-span-full">Loading categories...</p>
+              ) : categories.length === 0 ? (
+                <p className="text-center text-red-400 col-span-full">No categories available.</p>
+              ) : (
+                categories.map(cat => {
+                  const IconComponent = iconMap[cat.icon] || HelpCircle;
+                  return (
+                    <button
+                      key={cat._id}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`p-6 rounded-2xl border transition-all ${
+                        selectedCategory?._id === cat._id
+                          ? "bg-orange-600/20 border-orange-500 text-orange-400"
+                          : "bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      }`}
+                    >
+                      <div className="text-3xl mb-2 flex justify-center">
+                        <IconComponent className="w-8 h-8" />
+                      </div>
+                      <p className="font-medium">{cat.name}</p>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {selectedCategory && (
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="mt-3 text-sm text-gray-400 underline hover:text-white"
+              >
+                Change Category
+              </button>
+            )}
+          </div>
 
               {/* Image Upload */}
               <div className="mb-8">
@@ -233,13 +283,17 @@ export default function Found() {
               </div>
 
               {/* Dynamic Questions */}
-              {loading ? (
-                <p className="text-center text-white">Loading questions...</p>
-              ) : questions.length > 0 ? (
-                <div className="space-y-6">
-                  {questions.filter(q => !q.dependsOn).map(renderQuestion)}
-                </div>
-              ) : null}
+              {selectedCategory && (
+                <>
+                  {loading ? (
+                    <p className="text-center text-white">Loading questions...</p>
+                  ) : questions.length > 0 ? (
+                    <div className="space-y-6">
+                      {questions.filter(q => !q.dependsOn).map(renderQuestion)}
+                    </div>
+                  ) : null}
+                </>
+              )}
 
               {error && <p className="text-red-400 text-center mt-4">{error}</p>}
 

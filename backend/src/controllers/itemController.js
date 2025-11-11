@@ -4,10 +4,15 @@ import Category from "../models/Category.js";
 import Questionnaire from "../models/Questionnaire.js";
 import { success, error } from "../utils/response.js";
 
+// Levenshtein Distance
 function levenshteinDistance(a, b) {
-  const matrix = Array(b.length + 1).fill().map(() => Array(a.length + 1).fill(0));
+  const matrix = Array(b.length + 1)
+    .fill()
+    .map(() => Array(a.length + 1).fill(0));
+
   for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
   for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+
   for (let j = 1; j <= b.length; j++) {
     for (let i = 1; i <= a.length; i++) {
       const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
@@ -21,6 +26,7 @@ function levenshteinDistance(a, b) {
   return matrix[b.length][a.length];
 }
 
+// 1. CREATE FOUND ITEM
 export const createFoundItem = async (req, res) => {
   try {
     const { category: categoryId, description, location, finderAnswers: raw } = req.body;
@@ -31,7 +37,9 @@ export const createFoundItem = async (req, res) => {
     }
 
     const category = await Category.findById(categoryId);
-    if (!category || !category.isActive) return error(res, "Invalid category", 400);
+    if (!category || !category.isActive) {
+      return error(res, "Invalid or inactive category", 400);
+    }
 
     let finderAnswers = {};
     if (raw) {
@@ -45,7 +53,7 @@ export const createFoundItem = async (req, res) => {
         .map(q => q.id)
         .filter(id => !finderAnswers[id]);
       if (missing.length > 0) {
-        return error(res, `Missing: ${missing.join(", ")}`, 400);
+        return error(res, `Missing required answers: ${missing.join(", ")}`, 400);
       }
     }
 
@@ -58,46 +66,69 @@ export const createFoundItem = async (req, res) => {
     });
     await item.save();
 
-    success(res, { item }, "Reported", 201);
+    return success(res, { item }, "Item reported successfully", 201);
   } catch (err) {
-    error(res, err.message);
+    console.error("createFoundItem Error:", err);
+    return error(res, err.message || "Failed to report item", 500);
   }
 };
 
+// 2. GET ALL FOUND ITEMS
 export const getAllFoundItems = async (req, res) => {
   try {
     const items = await Item.find({ status: "found" })
       .populate("category", "name")
-      .sort({ reportedAt: -1 });
-    success(res, { items });
+      .sort({ reportedAt: -1 })
+      .lean();
+
+    return success(res, { items });
   } catch (err) {
-    error(res, err.message);
+    console.error("getAllFoundItems Error:", err);
+    return error(res, err.message || "Failed to fetch items", 500);
   }
 };
 
-// src/controllers/itemController.js
+// 3. MATCH LOST ITEM
 export const matchLostItem = async (req, res) => {
   try {
     const { categoryId, claimantAnswers } = req.body;
-    // ... validation ...
+
+    if (!categoryId || !claimantAnswers) {
+      return error(res, "categoryId and claimantAnswers are required", 400);
+    }
+
+    const category = await Category.findById(categoryId).select("name isActive");
+    if (!category) return error(res, "Category not found", 404);
+    if (!category.isActive) return error(res, "Category is not active", 400);
 
     const questionnaire = await Questionnaire.findOne({ category: categoryId });
-    if (!questionnaire) return error(res, "No questions", 400);
+    if (!questionnaire) return error(res, "No questions configured", 404);
 
-    // Build weight map
     const weightMap = {};
     questionnaire.questions.forEach(q => {
       weightMap[q.id] = q.weight || 1;
     });
 
-    const candidates = await Item.find({ category: categoryId, status: "found" });
+    const candidates = await Item.find({
+      category: categoryId,
+      status: "found",
+    }).lean();
+
+    if (candidates.length === 0) {
+      return success(res, {
+        category: category.name,
+        totalMatches: 0,
+        matches: [],
+        details: [],
+      });
+    }
 
     const matches = candidates.map(item => {
       let totalWeight = 0;
       let matchedWeight = 0;
 
       Object.entries(claimantAnswers).forEach(([key, claimValue]) => {
-        const foundValue = item.finderAnswers[key];
+        const foundValue = item.finderAnswers?.[key];
         if (!foundValue) return;
 
         const weight = weightMap[key] || 1;
@@ -112,8 +143,11 @@ export const matchLostItem = async (req, res) => {
           matchedWeight += weight * 0.7;
         } else {
           const distance = levenshteinDistance(claim, found);
-          const similarity = 1 - distance / Math.max(claim.length, found.length);
-          if (similarity > 0.6) matchedWeight += weight * similarity;
+          const maxLen = Math.max(claim.length, found.length);
+          if (maxLen > 0) {
+            const similarity = 1 - distance / maxLen;
+            if (similarity > 0.6) matchedWeight += weight * similarity;
+          }
         }
       });
 
@@ -122,11 +156,11 @@ export const matchLostItem = async (req, res) => {
       return {
         item: item._id,
         matchScore: score,
-        matchedFields: Object.keys(claimantAnswers).filter(k => item.finderAnswers[k]),
+        matchedFields: Object.keys(claimantAnswers).filter(k => item.finderAnswers?.[k]),
         details: {
           description: item.description,
           location: item.location,
-          photo: item.photo,
+          photo: item.photo || null,
           reportedAt: item.reportedAt,
           finderAnswers: item.finderAnswers,
         },
@@ -136,13 +170,15 @@ export const matchLostItem = async (req, res) => {
     .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, 10);
 
-    success(res, {
+    return success(res, {
       category: category.name,
       totalMatches: matches.length,
       matches: matches.map(m => m.item),
       details: matches,
     });
+
   } catch (err) {
-    error(res, err.message);
+    console.error("matchLostItem Error:", err);
+    return error(res, "Internal server error", 500);
   }
 };
