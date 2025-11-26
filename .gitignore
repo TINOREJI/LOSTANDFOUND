@@ -32,7 +32,7 @@ pnpm-debug.log*
 backend/node_modules/
 backend/dist/
 backend/build/
-backend/.env
+backend/venv
 backend/.env.local
 
 # Optional if using TypeScript in backend

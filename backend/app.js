@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 import categoryRoutes from "./src/routes/categoryRoutes.js";
 import questionnaireRoutes from "./src/routes/questionnaireRoutes.js";
 import itemRoutes from "./src/routes/itemRoutes.js";
-
+import aiRoutes from "./src/routes/aiRoutes.js";
 const app = express();
 
 // Middleware
@@ -31,7 +31,8 @@ console.log("Registering routes...");
 app.use("/api/v1/category", categoryRoutes);
 app.use("/api/v1/questionnaire", questionnaireRoutes);
 app.use("/api/v1/item", itemRoutes);
-
+app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/search", itemRoutes); // Reuse itemRoutes for /by-category
 console.log("All routes registered.");
 
 // 404 Handler

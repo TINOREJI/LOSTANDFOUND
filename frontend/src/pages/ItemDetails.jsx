@@ -73,7 +73,7 @@ export default function ItemDetail() {
 
   return (
     <section className="min-h-screen bg-black/95 py-16 px-4">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto mt-16">
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
@@ -90,7 +90,7 @@ export default function ItemDetail() {
                 <img
                   src={`http://localhost:8000${photo}`}
                   alt="Found item"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain object-center"
                 />
               ) : (
                 <div className="w-full h-full bg-gray-800 flex items-center justify-center">

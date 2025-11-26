@@ -110,7 +110,7 @@ export default function AdminDashboard() {
                     <div className="flex gap-6">
                       {item.photo && (
                         <img
-                          src={`${API_URL}${item.photo}`}
+                          src={`http://localhost:8000${item.photo}`}
                           alt="item"
                           className="w-24 h-24 rounded-xl object-cover border border-white/20"
                         />

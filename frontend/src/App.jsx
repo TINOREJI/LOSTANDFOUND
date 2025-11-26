@@ -23,7 +23,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/Notfound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-
+import SearchByPhoto from "./pages/SearchbyPhoto";
 function App() {
   return (
     <Router>
@@ -104,6 +104,7 @@ function App() {
             />
             {/* 404 Page */}
             <Route path="*" element={<NotFound />} />
+            <Route path="/search-by-photo" element={<SearchByPhoto />} />
           </Routes>
         </main>
 

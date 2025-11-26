@@ -1,4 +1,4 @@
-// src/middleware/upload.js
+// backend/src/middleware/upload.js
 import multer from "multer";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
@@ -12,12 +12,12 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   const allowed = /jpeg|jpg|png|webp/;
-  const valid = allowed.test(file.mimetype) && allowed.test(path.extname(file.originalname));
-  valid ? cb(null, true) : cb(new Error("Images only"));
+  const valid = allowed.test(file.mimetype) && allowed.test(path.extname(file.originalname).toLowerCase());
+  valid ? cb(null, true) : cb(new Error("Only images allowed (jpeg, jpg, png, webp)"));
 };
 
 export const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter,
 });

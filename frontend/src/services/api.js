@@ -56,14 +56,9 @@ export const submitFoundItem = async (formData) => {
 /* ========================================
    4. MATCH LOST ITEM (search + similarity score)
    ======================================== */
-export const matchLostItem = async ({ categoryId, claimantAnswers }) => {
-  if (!categoryId || !claimantAnswers) {
-    throw new Error("categoryId and claimantAnswers are required");
-  }
-  return await api.post("/item/match/lost", {
-    categoryId,
-    claimantAnswers,
-  });
+export const matchLostItem = async ({ categoryId, claimantAnswers = {} }) => {
+  if (!categoryId) throw new Error("categoryId is required");
+  return await api.post("/item/match/lost", { categoryId, claimantAnswers });
 };
 
 /* ========================================
@@ -128,5 +123,22 @@ export const uploadToCloudinary = async (file) => {
   return data.secure_url;
 };
 
+export const detectItemFromImage = async (file) => {
+  if (!file) throw new Error("File is required");
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  return await api.post("/ai/detect", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 60000, // YOLO can take time
+  });
+};
+
+export const searchByPhoto = async (categoryId) => {
+  if (!categoryId) throw new Error("categoryId required");
+  return await api.get("/by-category/", { categoryId });
+};
 
 export default api;
+

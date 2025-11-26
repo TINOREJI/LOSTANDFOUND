@@ -156,7 +156,7 @@ export default function Contact() {
                       href="mailto:support@findr.app"
                       className="text-xl font-bold text-white hover:text-orange-300 transition-colors"
                     >
-                      support@findr.app
+                      treji_me25@thapar.edu
                     </a>
                   </div>
                 </div>
@@ -168,10 +168,10 @@ export default function Contact() {
                   <div>
                     <p className="text-gray-300">Call us (24/7)</p>
                     <a
-                      href="tel:+1234567890"
+                      href="884-*******"
                       className="text-xl font-bold text-white hover:text-orange-300 transition-colors"
                     >
-                      +1 (234) 567-890
+                      +91-884*******
                     </a>
                   </div>
                 </div>
@@ -183,8 +183,8 @@ export default function Contact() {
                   <div>
                     <p className="text-gray-300">Visit us</p>
                     <p className="text-xl font-bold text-white">
-                      Campus Security Office<br />
-                      Room 101, Main Building
+                      Hostel M<br />
+                      Thapar Institute of Engineering and Technology, Patiala, Punjab, India
                     </p>
                   </div>
                 </div>

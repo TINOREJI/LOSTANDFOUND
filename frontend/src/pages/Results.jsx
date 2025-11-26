@@ -29,7 +29,7 @@ export default function Results() {
     <section className="min-h-screen bg-black/95 py-16 px-4">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 mt-16">
           <h1 className="text-4xl font-black text-white mb-2">Search Results</h1>
           <p className="text-gray-400">
             Found <span className="text-orange-400 font-bold">{totalMatches}</span> possible match{totalMatches !== 1 ? "es" : ""} for your{" "}
@@ -68,7 +68,7 @@ export default function Results() {
                       <img
                         src={`http://localhost:8000${photo}`}
                         alt="Found item"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center"
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-600">
