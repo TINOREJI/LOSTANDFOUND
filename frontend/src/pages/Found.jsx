@@ -9,7 +9,23 @@ import {
   Laptop,
   Package,
   HelpCircle,
+  CreditCard,
+  Watch,
+  Headphones,
+  BookOpen,
+  Umbrella,
+  Shirt,
+  Glasses,
 } from "lucide-react";
+import { SlHandbag } from "react-icons/sl";
+import { IoBookOutline } from "react-icons/io5";
+import { IoGlassesOutline } from "react-icons/io5";
+import { SlEarphones } from "react-icons/sl";
+import { GiSleevelessJacket } from "react-icons/gi";
+import { IoIosLaptop } from "react-icons/io";
+import { CiWallet } from "react-icons/ci";
+import { FaBottleWater } from "react-icons/fa6";
+import { FaRegIdCard } from "react-icons/fa";
 
 export default function Found() {
   const [categories, setCategories] = useState([]);
@@ -121,13 +137,22 @@ export default function Found() {
     setImage(null);
     setPreview("");
   };
-  const iconMap = {
-  Smartphone,
-  Wallet,
-  Key,
-  Laptop,
-  Package,
-  HelpCircle,
+const iconMap = {
+  Smartphone: Smartphone,
+  Wallet: Wallet,
+  Key: Key,
+  Laptop: Laptop,
+  Package: Package,
+  HelpCircle: HelpCircle,
+  CreditCard: CreditCard,
+  Watch: Watch,
+  Headphones: Headphones,
+  Book: BookOpen,
+  Umbrella: Umbrella,
+  Shirt: Shirt,
+  Glasses: Glasses,
+  Bottle: FaBottleWater,
+  Card:FaRegIdCard,
 };
 
   const renderQuestion = (q) => {

@@ -1,6 +1,6 @@
 // src/pages/Lost.jsx
 import { useState, useEffect } from "react";
-import { FiSearch, FiArrowRight } from "react-icons/fi";
+import { FiSearch, FiArrowRight, FiHeadphones } from "react-icons/fi";
 import {
   Smartphone,
   Wallet,
@@ -8,19 +8,44 @@ import {
   Laptop,
   Package,
   HelpCircle,
-} from "lucide-react"; // ← Correct names
+  CreditCard,
+  Watch,
+  Headphones,
+  BookOpen,
+  Umbrella,
+  Shirt,
+  Glasses,
+} from "lucide-react"; 
+import { SlHandbag } from "react-icons/sl";
+import { IoBookOutline } from "react-icons/io5";
+import { IoGlassesOutline } from "react-icons/io5";
+import { SlEarphones } from "react-icons/sl";
+import { GiSleevelessJacket } from "react-icons/gi";
+import { IoIosLaptop } from "react-icons/io";
+import { CiWallet } from "react-icons/ci";
+import { FaBottleWater } from "react-icons/fa6";
 
 import { getCategories } from "../services/api";
 import DynamicForm from "../components/forms/DynamicForm";
+import { FaRegIdCard } from "react-icons/fa";
 
 // Map DB icon string → actual component
 const iconMap = {
-  FiSmartphone: Smartphone,
-  FiWallet: Wallet,
-  FiKey: Key,
-  FiLaptop: Laptop,
-  FiPackage: Package,
-  FiHelpCircle: HelpCircle,
+  Smartphone: Smartphone,
+  Wallet: Wallet,
+  Key: Key,
+  Laptop: Laptop,
+  Package: Package,
+  HelpCircle: HelpCircle,
+  CreditCard: CreditCard,
+  Watch: Watch,
+  Headphones: Headphones,
+  Book: BookOpen,
+  Umbrella: Umbrella,
+  Shirt: Shirt,
+  Glasses: Glasses,
+  Bottle: FaBottleWater,
+  Card:FaRegIdCard,
 };
 
 export default function Lost() {

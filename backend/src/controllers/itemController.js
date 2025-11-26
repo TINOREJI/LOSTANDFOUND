@@ -182,3 +182,29 @@ export const matchLostItem = async (req, res) => {
     return error(res, "Internal server error", 500);
   }
 };
+
+export const getItemById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ success: false, message: "Invalid ID" });
+    }
+
+    const item = await Item.findById(id)
+      .populate("category", "name slug")
+      .lean();
+
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Item not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: { item },
+    });
+  } catch (err) {
+    console.error("getItemById error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};

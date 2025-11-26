@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import logo from '../../assets/logodemp.png';
 export default function Footer() {
   return (
@@ -21,15 +22,15 @@ export default function Footer() {
 
           {/* Right: Copyright */}
           <nav className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-8 text-sm">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors hover:glow">
+            <Link to="/guidelines" className="text-gray-400 hover:text-white transition-colors hover:glow">
               Privacy Policy
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors hover:glow">
+            </Link>
+            <Link to="/guidelines" className="text-gray-400 hover:text-white transition-colors hover:glow">
               Terms of Service
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors hover:glow">
+            </Link>
+            <Link to="/contact" className="text-gray-400 hover:text-white transition-colors hover:glow">
               Contact Us
-            </a>
+            </Link>
           </nav>
         </div>
       </div>

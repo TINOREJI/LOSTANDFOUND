@@ -14,16 +14,7 @@ export default function Results() {
   const [error, setError] = useState("");
 
   const handleClaim = async (itemId) => {
-    setClaiming(itemId);
-    setError("");
-    try {
-      await claimItem(itemId, { message: "I am the owner" });
-      setClaimed(itemId);
-    } catch (err) {
-      setError("Failed to claim. Try again.");
-    } finally {
-      setClaiming(null);
-    }
+    
   };
 
   if (!category || totalMatches === undefined) {
@@ -91,34 +82,28 @@ export default function Results() {
                   </div>
 
                   {/* Content */}
-                  <div className="p-6 space-y-3">
-                    <p className="text-white font-medium line-clamp-2">{description}</p>
-                    <p className="text-sm text-gray-400">
-                      Found at: <span className="text-orange-400">{location}</span>
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Reported: {new Date(reportedAt).toLocaleDateString()}
-                    </p>
+                  {/* Content */}
+                <div className="p-6 space-y-3">
+                  <p className="text-white font-medium line-clamp-2">{description}</p>
+                  <p className="text-sm text-gray-400">
+                    Found at: <span className="text-orange-400">{location}</span>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Reported: {new Date(reportedAt).toLocaleDateString()}
+                  </p>
 
-                    {/* Claim Button */}
-                    {claimed === item ? (
-                      <button className="w-full py-3 bg-green-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">
-                        <FiCheckCircle /> Claimed
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleClaim(item)}
-                        disabled={claiming === item}
-                        className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-                          claiming === item
-                            ? "bg-gray-700 text-gray-400"
-                            : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:scale-105 shadow-xl"
-                        }`}
-                      >
-                        {claiming === item ? "Claiming..." : "Claim This Item"}
-                      </button>
-                    )}
-                  </div>
+                  {/* Updated Button – Only navigation */}
+                  <button
+                  onClick={() =>
+                    navigate(`/item/${item}`, {
+                      state: { matchScore }  // ← SEND THE SCORE!
+                    })
+                  }
+                  className="w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:scale-105 shadow-xl transition-all"
+                >
+                  View Details & Claim
+                </button>
+                </div>
                 </div>
               );
             })}

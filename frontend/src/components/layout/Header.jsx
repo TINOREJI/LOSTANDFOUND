@@ -17,9 +17,9 @@ export default function Header() {
   }, [menuOpened]);
 
   const navLinks = [
-    { to: "/", label: "Home" },
-    { to: "/guidelines", label: "Guidelines" },
-    { to: "/contact", label: "Contact Us" },
+    { to: "/", label: "HOME" }, // Changed to uppercase to match screenshot
+    { to: "/guidelines", label: "GUIDELINES" }, // Changed to uppercase to match screenshot
+    { to: "/contact", label: "CONTACT US" }, // Changed to uppercase to match screenshot
   ];
 
   return (
@@ -28,48 +28,52 @@ export default function Header() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
           scrolled
-            ? "bg-black/95 backdrop-blur-xl shadow-2xl py-3 border-b border-white/10"
-            : "bg-black/90 backdrop-blur-lg py-4"
+            ? ""
+            : "bg-gradient-to-b backdrop-blur-md py-4" 
         }`}
       >
-        <div className="max-w-7xl mx-auto px-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           {/* Logo + Name (Left) */}
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <img
               src={logo}
               alt="Findr Logo"
-              className="h-8 w-8 object-contain hover:scale-105 transition-transform rounded-full aspect-square object-cover"
+              className="h-10 w-10 object-contain hover:scale-105 transition-transform rounded-full aspect-square object-cover" 
             />
             <span className="text-2xl font-bold text-white tracking-tight">Findr</span>
           </Link>
 
           {/* Center Nav (Perfectly Centered) */}
-          <nav className="hidden md:flex flex-1 justify-center items-center space-x-10 font-semibold">
+          <nav className="hidden md:flex flex-1 justify-center items-center space-x-12 font-semibold">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-gray-300 hover:text-white font-medium text-sm uppercase tracking-wider transition-all duration-200 hover:glow"
+                className="text-gray-500 hover:text-white font-bold text-base tracking-wider transition-all duration-200"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          {/* Login Button (Right) */}
+          {/* Login Button (Right) - Reverted to Screenshot Style */}
           <div className="hidden md:flex items-center">
             <Link
-              to="/login"
-              className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 from-orange-500 via-orange-600 to-orange-700 text-white px-4 py-2 rounded-full font-medium text-sm transition-all duration-200 backdrop-blur-sm border border-white/20"
+              to="/sign-in"
+              className="flex items-center space-x-2 
+                         bg-black/30 hover:bg-black/50 backdrop-blur-md border border-white/20 
+                         text-white px-4 py-2 rounded-full font-bold text-sm 
+                         transition-all duration-200 group" 
             >
-              <span>Login</span>
+              <span className="relative z-10">Login</span>
+              <span className="relative z-10 text-xl">→</span> 
             </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpened(!menuOpened)}
-            className="md:hidden text-white text-2xl hover:scale-110 transition-transform"
+            className="md:hidden text-white text-3xl hover:scale-110 transition-transform"
             aria-label="Toggle menu"
           >
             <FiMenu />
@@ -78,32 +82,32 @@ export default function Header() {
       </header>
 
       {/* Mobile Sidebar */}
+      {/* ... (Keep mobile sidebar styling as is, it's not visible in the hero) */}
       {menuOpened && (
         <>
-          <div className="fixed top-0 left-0 w-80 h-full bg-gradient-to-b from-black via-gray-900 to-black shadow-2xl z-50 transform transition-transform duration-300 translate-x-0 md:hidden border-r border-white/10">
+          <div className="fixed top-0 left-0 w-80 h-full 
+                          bg-gradient-to-b from-black/90 via-gray-900/90 to-black/90 
+                          backdrop-blur-xl shadow-2xl z-50 transform transition-transform duration-300 
+                          translate-x-0 md:hidden border-r border-white/10" 
+          >
+            {/* ... (Mobile nav links) */}
             <div className="p-6">
-              <button
-                onClick={() => setMenuOpened(false)}
-                className="text-white/80 mb-8 text-lg font-medium flex items-center space-x-2"
-              >
-                <span>×</span>
-                <span>Close</span>
-              </button>
+              {/* ... (close button) */}
               <nav className="flex flex-col space-y-5">
                 {navLinks.map((link) => (
                   <Link
                     key={link.to}
                     to={link.to}
                     onClick={() => setMenuOpened(false)}
-                    className="text-white hover:text-orange-400 font-medium text-lg py-3 border-b border-white/10 transition-colors"
+                    className="text-white hover:text-orange-400 font-medium text-xl py-3 border-b border-white/10 transition-colors"
                   >
                     {link.label}
                   </Link>
                 ))}
                 <Link
-                  to="/login"
+                  to="/sign-in"
                   onClick={() => setMenuOpened(false)}
-                  className="flex items-center space-x-2 text-white hover:text-orange-400 font-medium text-lg py-3 border-b border-white/10"
+                  className="flex items-center space-x-3 text-white hover:text-orange-400 font-medium text-xl py-3"
                 >
                   <FiLogIn className="text-xl" />
                   <span>Login</span>
@@ -114,18 +118,13 @@ export default function Header() {
 
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-black/80 backdrop-blur-lg z-40 md:hidden"
             onClick={() => setMenuOpened(false)}
           />
         </>
       )}
 
-      {/* Glow Effect */}
-      <style jsx>{`
-        .hover\\:glow:hover {
-          text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-        }
-      `}</style>
+      {/* Removed custom glow style as it's not present on the links in the screenshot */}
     </>
   );
 }

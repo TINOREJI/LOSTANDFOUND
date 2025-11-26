@@ -128,4 +128,5 @@ export const uploadToCloudinary = async (file) => {
   return data.secure_url;
 };
 
+
 export default api;

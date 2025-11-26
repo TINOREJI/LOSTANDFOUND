@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+/* Hide Clerk default footer "Secured by Clerk" if you want */
+.cl-footer {
+  display: none !important;
+}
